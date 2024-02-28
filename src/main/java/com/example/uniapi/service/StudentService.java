@@ -104,12 +104,11 @@ public class StudentService {
 
         // Check if the course that the student is being transferred
         // to is the same course that the student is currently enrolled in
-        //
-        if(existingStudent.getCourse().getId().equals(transferStudentDTO.courseId())) {
+        if(transferStudentDTO.courseId().equals(existingStudent.getCourse().getId())) {
             return existingStudent;
         }
 
-        // Check if course student is being transferred to exists
+        // Check if course that the student is being transferred to exists
         Optional<Course> existingCourse = courseRepository
                 .findById(transferStudentDTO.courseId());
 

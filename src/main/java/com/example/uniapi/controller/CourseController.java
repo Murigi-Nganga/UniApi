@@ -3,6 +3,7 @@ package com.example.uniapi.controller;
 import com.example.uniapi.domain.Course;
 import com.example.uniapi.dto.CreateCourseDTO;
 import com.example.uniapi.dto.PatchCourseDTO;
+import com.example.uniapi.dto.TransferCourseDTO;
 import com.example.uniapi.exception.InvalidReqParamException;
 import com.example.uniapi.service.CourseService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -77,6 +78,17 @@ public class CourseController {
     ) {
         Course updatedCourse = courseService
                 .updateCourse(courseId, patchCourseDTO);
+        return ResponseEntity.status(HttpStatus.OK).body(updatedCourse);
+    }
+
+    @PatchMapping(path = {"/transfer/{courseId}", "/transfer/{courseId}/"})
+    public ResponseEntity<Course> transferCourse(
+            @PathVariable Long courseId,
+            @RequestBody TransferCourseDTO transferCourseDTO
+            ) {
+        Course updatedCourse = courseService
+                .transferCourse(courseId, transferCourseDTO);
+
         return ResponseEntity.status(HttpStatus.OK).body(updatedCourse);
     }
 

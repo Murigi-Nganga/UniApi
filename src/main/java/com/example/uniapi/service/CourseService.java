@@ -4,6 +4,7 @@ import com.example.uniapi.domain.Course;
 import com.example.uniapi.domain.Institution;
 import com.example.uniapi.dto.CreateCourseDTO;
 import com.example.uniapi.dto.PatchCourseDTO;
+import com.example.uniapi.dto.TransferCourseDTO;
 import com.example.uniapi.repository.CourseRepository;
 import com.example.uniapi.repository.InstitutionRepository;
 import jakarta.persistence.EntityExistsException;
@@ -98,6 +99,52 @@ public class CourseService {
         // Update the course name if there's no course with the name in the institution
         existingCourse.setName(patchCourseDTO.name());
         return courseRepository.save(existingCourse);
+    }
+
+    public Course transferCourse(Long courseId, TransferCourseDTO transferCourseDTO) {
+        // Check if the course with the Id exists
+        Course existingCourse = findByIdOrThrow(courseId);
+
+        // Check if the institution that the course is being transferred
+        // to is the same institution that the course is currently found in
+        if(transferCourseDTO.institutionId().equals(existingCourse.getInstitution().getId())) {
+            return existingCourse;
+        }
+
+        // Check if institution that the course is being transferred to exists
+        Optional<Institution> existingInstitution = institutionRepository
+                .findById(transferCourseDTO.institutionId());
+
+        if(existingInstitution.isEmpty()) {
+            throw new EntityNotFoundException("The institution with ID" +
+                    transferCourseDTO.institutionId() +
+                    "that the course is being transferred to doesn't exist");
+        }
+
+        // Check if the institution that the course is being
+        // transferred to has a course with a similar name
+        Optional<Institution> courseInNewInstitution = institutionRepository.findByName(existingInstitution.get().getName());
+
+        if(courseInNewInstitution.isPresent()) {
+            throw new EntityExistsException("A course with a similar " +
+                    "name in the new institution exists"
+            );
+        }
+
+        // Transfer course to new institution
+        existingCourse.setInstitution(existingInstitution.get());
+
+        // Implicitly, all students are transferred to the new institution
+        // because students are linked/related to a course
+        // and not directly to an institution
+
+        // Another option of handling this transfer is:
+        // Creating a default course where students are placed after
+        // a course transfer such that they remain in their old institution
+        // even though the course has moved to a different institution
+
+        return courseRepository.save(existingCourse);
+
     }
 
     public void deleteCourse(Long courseId) {
