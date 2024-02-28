@@ -4,12 +4,15 @@ import com.example.uniapi.domain.Institution;
 import com.example.uniapi.domain.enums.InstitutionType;
 import com.example.uniapi.dto.PatchInstitutionDTO;
 import com.example.uniapi.repository.InstitutionRepository;
+import jakarta.persistence.EntityExistsException;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class InstitutionService {
@@ -22,22 +25,20 @@ public class InstitutionService {
     }
 
     private Institution findByIdOrThrow(Long institutionId) {
-        //TODO: Throw a custom InstitutionNotFoundException
         return institutionRepository.findById(institutionId)
-                .orElseThrow(EntityNotFoundException::new);
+                .orElseThrow(() -> new EntityNotFoundException(
+                        "Institution with the ID " + institutionId +
+                                " does not exist"));
     }
 
-//    private Optional<Institution> findByName(String name) {
-//        return institutionRepository.findByName(name);
-//    }
-
     public Institution createInstitution(Institution newInstitution) {
-        //TODO: Impl findByName method here
-//        Optional<Institution> institution = institutionRepository.findByName(newInstitution.getName());
-//
-//        if(institution.isPresent()) {
-//            throw new InstitutionExistsException();
-//        }
+        Optional<Institution> institution = institutionRepository
+                .findByName(newInstitution.getName());
+
+        if(institution.isPresent()) {
+            throw new EntityExistsException("Institution with a similar name " +
+                    institution.get().getName() + " exists");
+        }
 
         return institutionRepository.save(newInstitution);
     }
@@ -45,7 +46,6 @@ public class InstitutionService {
     public Institution getInstitution(Long institutionId) {
         return findByIdOrThrow(institutionId);
     }
-
 
     public List<Institution> getInstitutions(InstitutionType type, String location, Sort sort) {
         if (type != null && location != null) {
@@ -58,25 +58,40 @@ public class InstitutionService {
             // location has a value
             return institutionRepository.findAllByLocation(location, sort);
         } else {
+            // location and type are both null
             return institutionRepository.findAll(sort);
         }
     }
 
     public Institution updateInstitution(Long institutionId, PatchInstitutionDTO patchInstitutionDTO) {
-        Institution institution = findByIdOrThrow(institutionId);
+        Institution existingInstitution = findByIdOrThrow(institutionId);
 
-        //TODO: Add exception in the event that the new and existing names are the same
-        institution.setName(patchInstitutionDTO.name());
+        // if existingInstitution has the same name with the new suggested name
+        // return the existing institution (no db change occurs)
+        if(existingInstitution.getName().equals(patchInstitutionDTO.name())) {
+            return existingInstitution;
+        }
 
-        return institutionRepository.save(institution);
+        // Check if there's an institution with the new suggested name
+        Optional<Institution> institution = institutionRepository.findByName(patchInstitutionDTO.name());
+
+        if(institution.isPresent()) {
+            throw new EntityExistsException("An institution with a similar name '" +
+                    patchInstitutionDTO.name() + "' exists");
+        }
+
+        // Update the institution if no institution in the db has the new name
+        existingInstitution.setName(patchInstitutionDTO.name());
+        return institutionRepository.save(existingInstitution);
     }
 
-    public void deleteInstitution(Long institutionId) throws Exception{
+    public void deleteInstitution(Long institutionId) {
         Institution institution = findByIdOrThrow(institutionId);
-        //TODO: Only allow deletion if no courses are assigned
-        //TODO: Throw custom InstitutionHasCoursesException
+
+        //Only allow deletion if no courses
         if(!institution.getCourses().isEmpty()) {
-            throw new Exception("There are courses assigned to this institution");
+            throw new DataIntegrityViolationException(
+                    "Cannot delete institution because it has assigned courses");
         }
 
         institutionRepository.deleteById(institutionId);

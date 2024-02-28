@@ -11,11 +11,12 @@ import java.util.Optional;
 
 @Repository
 public interface InstitutionRepository extends JpaRepository<Institution, Long> {
-//    Optional<Institution> findByName(String name);
+    Optional<Institution> findByName(String name);
 
     List<Institution> findAllByType(InstitutionType institutionType, Sort sort);
 
     List<Institution> findAllByLocation(String location, Sort sort);
 
     List<Institution> findAllByTypeAndLocation(InstitutionType type, String location, Sort sort);
+
 }

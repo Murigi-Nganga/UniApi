@@ -1,9 +1,9 @@
 package com.example.uniapi.controller;
 
 import com.example.uniapi.domain.Course;
-import com.example.uniapi.domain.Institution;
 import com.example.uniapi.dto.CreateCourseDTO;
 import com.example.uniapi.dto.PatchCourseDTO;
+import com.example.uniapi.exception.InvalidReqParamException;
 import com.example.uniapi.service.CourseService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
@@ -11,9 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.lang.reflect.Field;
 import java.util.List;
-import java.util.stream.Stream;
 
 @RestController
 @RequestMapping(path = "api/courses")
@@ -52,23 +50,20 @@ public class CourseController {
         if(sortOrder.equalsIgnoreCase("ASC")) {
             direction = Sort.Direction.ASC;
         }
-        if(sortOrder.equalsIgnoreCase("DESC")) {
+        else if(sortOrder.equalsIgnoreCase("DESC")) {
             direction = Sort.Direction.DESC;
         } else {
-            System.out.println("Invalid sort order value");
-            direction = Sort.Direction.ASC;
-            //TODO: Show allowed sorted order values
-            // throw InvalidSortOrderValueException();
+            throw new InvalidReqParamException("Invalid sortOrder value. " +
+                    "Allowed values are 'ASC' and 'DESC'");
         }
 
-        List<String> courseClassFields = Stream.of(Course.class.getFields()).map(Field::getName).toList();
+        List<String> allowedSortFields = List.of("id", "name");
 
         Sort sort = sortBy == null || sortBy.isEmpty() ? Sort.unsorted() : Sort.by(direction, sortBy);
 
-        if(sortBy != null && !courseClassFields.contains(sortBy)) {
-            //TODO: Show allowed sort field values
-            // throw InvalidSortFieldValueException();
-            System.out.println("Wrong sort field name");
+        if(sortBy != null && !allowedSortFields.contains(sortBy)) {
+            throw new InvalidReqParamException(
+                    "Invalid sort field name. Allowed sortBy names are: " + allowedSortFields);
         }
 
         List<Course> courses = courseService.getCourses(institutionId, sort);
@@ -79,16 +74,14 @@ public class CourseController {
     public ResponseEntity<Course> updateCourse(
             @PathVariable Long courseId,
             @RequestBody PatchCourseDTO patchCourseDTO
-    ) throws Exception {
+    ) {
         Course updatedCourse = courseService
                 .updateCourse(courseId, patchCourseDTO);
         return ResponseEntity.status(HttpStatus.OK).body(updatedCourse);
     }
 
-
-
     @DeleteMapping(path = {"/{courseId}", "/{courseId}/"})
-    public void deleteCourse(@PathVariable Long courseId) throws Exception {
+    public void deleteCourse(@PathVariable Long courseId) {
         courseService.deleteCourse(courseId);
     }
 
