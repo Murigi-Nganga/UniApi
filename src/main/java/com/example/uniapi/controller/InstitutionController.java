@@ -42,7 +42,7 @@ public class InstitutionController {
 
     @GetMapping(path = {"", "/"})
     public ResponseEntity<List<Institution>> getInstitutions(
-            @RequestParam(name = "type", required = false) InstitutionType type,
+            @RequestParam(name = "type", required = false) String type,
             @RequestParam(name = "location", required = false) String location,
             @RequestParam(name = "sortBy", required = false) String sortBy,
             @RequestParam(name = "sortOrder", required = false, defaultValue = "ASC") String sortOrder
@@ -58,6 +58,11 @@ public class InstitutionController {
                     "Allowed values are 'ASC' and 'DESC'");
         }
 
+        if(type != null && !(type.equals("PRIVATE") || type.equals("PUBLIC"))) {
+            throw new InvalidReqParamException("Invalid type value. " +
+                    "Allowed values are 'PRIVATE' and 'PUBLIC'");
+        }
+
         List<String> allowedSortFields = List.of("id", "name", "type", "location");
 
         Sort sort = sortBy == null || sortBy.isEmpty() ? Sort.unsorted() : Sort.by(direction, sortBy);
@@ -67,7 +72,8 @@ public class InstitutionController {
                     "Invalid sort field name. Allowed sortBy names are: " + allowedSortFields);
         }
 
-        List<Institution> institutions =  institutionService.getInstitutions(type, location, sort);
+        List<Institution> institutions =  institutionService
+                .getInstitutions(InstitutionType.valueOf(type), location, sort);
         return ResponseEntity.status(HttpStatus.OK).body(institutions);
     }
 
