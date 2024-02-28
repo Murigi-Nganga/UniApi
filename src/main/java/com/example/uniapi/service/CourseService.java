@@ -116,14 +116,17 @@ public class CourseService {
                 .findById(transferCourseDTO.institutionId());
 
         if(existingInstitution.isEmpty()) {
-            throw new EntityNotFoundException("The institution with ID" +
+            throw new EntityNotFoundException("The institution with ID " +
                     transferCourseDTO.institutionId() +
-                    "that the course is being transferred to doesn't exist");
+                    " that the course is being transferred to doesn't exist");
         }
 
         // Check if the institution that the course is being
         // transferred to has a course with a similar name
-        Optional<Institution> courseInNewInstitution = institutionRepository.findByName(existingInstitution.get().getName());
+        Optional<Course> courseInNewInstitution = courseRepository
+                .findFirstByNameAndInstitutionId(
+                        existingInstitution.get().getName(),
+                        transferCourseDTO.institutionId());
 
         if(courseInNewInstitution.isPresent()) {
             throw new EntityExistsException("A course with a similar " +

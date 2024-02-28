@@ -69,7 +69,7 @@ public class StudentController {
                     "Invalid sort field name. Allowed sortBy names are: " + allowedSortFields);
         }
 
-        List<Student> students = studentService.getStudents(courseId, institutionId, sort);
+        List<Student> students = studentService.getStudents(institutionId, courseId, sort);
         return ResponseEntity.status(HttpStatus.OK).body(students);
     }
 

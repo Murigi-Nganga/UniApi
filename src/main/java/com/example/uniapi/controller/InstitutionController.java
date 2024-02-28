@@ -72,8 +72,9 @@ public class InstitutionController {
                     "Invalid sort field name. Allowed sortBy names are: " + allowedSortFields);
         }
 
+        // InstitutionType.valueOf() throws an error with a null value
         List<Institution> institutions =  institutionService
-                .getInstitutions(InstitutionType.valueOf(type), location, sort);
+                .getInstitutions(type == null ? null : InstitutionType.valueOf(type), location, sort);
         return ResponseEntity.status(HttpStatus.OK).body(institutions);
     }
 
