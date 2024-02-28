@@ -27,7 +27,7 @@ public class CourseController {
     @PostMapping(path = {"", "/"})
     public ResponseEntity<Course> createCourse(
             @RequestBody CreateCourseDTO createCourseDTO
-            ) throws Exception {
+            ) {
         Course createdCourse = courseService
                 .createCourse(createCourseDTO);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdCourse);
