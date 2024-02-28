@@ -10,7 +10,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class InstitutionService {
@@ -47,6 +46,7 @@ public class InstitutionService {
         return findByIdOrThrow(institutionId);
     }
 
+
     public List<Institution> getInstitutions(InstitutionType type, String location, Sort sort) {
         if (type != null && location != null) {
             // Both type and location have values
@@ -71,14 +71,13 @@ public class InstitutionService {
         return institutionRepository.save(institution);
     }
 
-    public void deleteInstitution(Long institutionId) {
+    public void deleteInstitution(Long institutionId) throws Exception{
         Institution institution = findByIdOrThrow(institutionId);
-
         //TODO: Only allow deletion if no courses are assigned
         //TODO: Throw custom InstitutionHasCoursesException
-//        if(institution.getCourses().size() > 0) {
-//            throw new InstitutionHasCoursesException();
-//        }
+        if(!institution.getCourses().isEmpty()) {
+            throw new Exception("There are courses assigned to this institution");
+        }
 
         institutionRepository.deleteById(institutionId);
     }

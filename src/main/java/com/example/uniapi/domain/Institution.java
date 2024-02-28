@@ -27,11 +27,9 @@ public class Institution {
     @JsonManagedReference("institution-course")
     private List<Course> courses;
 
-    public Institution(Long id, String name, String location, List<Course> courses) {
-        this.id = id;
+    public Institution(String name, String location) {
         this.name = name;
         this.location = location;
-        this.courses = courses;
     }
 
     public Institution() {
@@ -39,10 +37,6 @@ public class Institution {
 
     public Long getId() {
         return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
     }
 
     public String getName() {

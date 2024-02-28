@@ -29,22 +29,16 @@ public class Course {
     @JsonManagedReference("student-course")
     private List<Student> students;
 
-    public Course(Long id, String name, String description, Institution institution, List<Student> students) {
-        this.id = id;
+    public Course(String name, String description, Institution institution) {
         this.name = name;
         this.description = description;
         this.institution = institution;
-        this.students = students;
     }
 
     public Course() {}
 
     public Long getId() {
         return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
     }
 
     public String getName() {

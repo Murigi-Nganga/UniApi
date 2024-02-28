@@ -6,6 +6,7 @@ import com.example.uniapi.dto.PatchInstitutionDTO;
 import com.example.uniapi.service.InstitutionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -30,14 +31,14 @@ public class InstitutionController {
     ) {
         Institution createdInstitution = institutionService
                 .createInstitution(newInstitution);
-        return ResponseEntity.status(201).body(createdInstitution);
+        return ResponseEntity.status(HttpStatus.CREATED).body(createdInstitution);
     }
 
     @GetMapping(path = {"/{institutionId}", "/{institutionId}/"})
     public ResponseEntity<Institution> getInstitution(
             @PathVariable Long institutionId) {
         Institution institution = institutionService.getInstitution(institutionId);
-        return ResponseEntity.status(200).body(institution);
+        return ResponseEntity.status(HttpStatus.OK).body(institution);
     }
 
     @GetMapping(path = {"", "/"})
@@ -47,39 +48,33 @@ public class InstitutionController {
             @RequestParam(name = "sortBy", required = false) String sortBy,
             @RequestParam(name = "sortOrder", required = false, defaultValue = "ASC") String sortOrder
     ) {
-        Sort sort = null;
 
-        if (sortBy != null && !sortBy.isEmpty()) {
-            Sort.Direction direction;
-            if(sortOrder.equalsIgnoreCase("ASC")) {
-                direction = Sort.Direction.ASC;
-            } else if(sortOrder.equalsIgnoreCase("DESC")) {
-                direction = Sort.Direction.DESC;
-            } else {
-                direction = null;
-                System.out.println("Invalid sort order value");
-
-                //TODO: Show allowed sorted order values
-                // throw InvalidSortOrderValueException();
-            }
-
-            //TODO: Throw custom InvalidSortOrderValueException() in else block
-            // instead of this
-            if(direction == null) direction = Sort.Direction.ASC;
-
-            List<String> institutionClassFields = Stream.of(Institution.class.getFields()).map(Field::getName).toList();
-
-            if(!institutionClassFields.contains(sortBy)) {
-                //TODO: Show allowed sort field values
-                // throw InvalidSortFieldValueException();
-                System.out.println("Wrong sort field name");
-            }
-
-            sort = Sort.by(direction, sortBy);
+        Sort.Direction direction;
+        if(sortOrder.equalsIgnoreCase("ASC")) {
+            direction = Sort.Direction.ASC;
+        }
+        if(sortOrder.equalsIgnoreCase("DESC")) {
+            direction = Sort.Direction.DESC;
+        } else {
+            System.out.println("Invalid sort order value");
+            direction = Sort.Direction.ASC;
+            //TODO: Show allowed sorted order values
+            // throw InvalidSortOrderValueException();
         }
 
-        List<Institution> institutions = institutionService.getInstitutions(type, location, sort);
-        return ResponseEntity.status(200).body(institutions);
+        List<String> institutionClassFields = Stream.of(Institution.class.getFields()).map(Field::getName).toList();
+
+        Sort sort = sortBy == null || sortBy.isEmpty() ? Sort.unsorted() : Sort.by(direction, sortBy);
+
+        if(sortBy != null && !institutionClassFields.contains(sortBy)) {
+            //TODO: Show allowed sort field values
+            // throw InvalidSortFieldValueException();
+            System.out.println("Wrong sort field name");
+        }
+
+        List<Institution> institutions =  institutionService.getInstitutions(type, location, sort);
+
+        return ResponseEntity.status(HttpStatus.OK).body(institutions);
     }
 
     @PatchMapping(path = {"/{institutionId}", "/{institutionId}/"})
@@ -89,11 +84,11 @@ public class InstitutionController {
     ) {
         Institution updatedInstitution = institutionService
                 .updateInstitution(institutionId, patchInstitutionDTO);
-        return ResponseEntity.status(200).body(updatedInstitution);
+        return ResponseEntity.status(HttpStatus.OK).body(updatedInstitution);
     }
 
     @DeleteMapping(path = {"/{institutionId}", "/{institutionId}/"})
-    public void deleteInstitution(@PathVariable Long institutionId) {
+    public void deleteInstitution(@PathVariable Long institutionId) throws Exception {
         institutionService.deleteInstitution(institutionId);
     }
 }
