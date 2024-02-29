@@ -19,20 +19,26 @@ The application can be run in two ways:
 If you're using an IDE like IntelliJ, you can run the app using the 'Play' button
 
 Otherwise, you can run the app on your terminal:
+
 1. Navigate to your project directory
+
     ```bash
     cd /path/to/your/project
    ```
 2. Run:
+
     ```bash
     gradlew bootRun
    ```
 
 #### B. Using docker
+
 1. First build your application to produce a .jar file
+
     ```bash
     gradlew bootJar
    ```
+   
 2. You will find the .jar file in the build/libs directory
 
     ```bash
@@ -43,11 +49,13 @@ Otherwise, you can run the app on your terminal:
     |---build.gradle
    ```
 3. Build the image
+
     ```bash
     docker build -t <your-image-name>:<tag> .
    ```
 4. Run the container based on the image, adding environment variables. 
    Note that docker adds a tag (latest) at the end if one is not defined
+
     ```bash
     docker run -p 8080:8080 \
     -e DATABASE_URL=<your-db-url> \
@@ -55,6 +63,8 @@ Otherwise, you can run the app on your terminal:
     -e DATABASE_PASSWORD=<your-db-password> \
     <your-image-name>:<tag>
    ```
+
+**Note**: If you're on Linux/MacOS, use ```./gradlew``` instead of ```gradlew```
 
 ## Database Schema
 
