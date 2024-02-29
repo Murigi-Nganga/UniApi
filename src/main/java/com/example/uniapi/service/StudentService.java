@@ -10,6 +10,9 @@ import com.example.uniapi.repository.StudentRepository;
 import jakarta.persistence.EntityExistsException;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
@@ -67,20 +70,26 @@ public class StudentService {
 
     public Student getStudent(Long studentId) { return findByIdOrThrow(studentId);}
 
-    public List<Student> getStudents(Long institutionId, Long courseId, Sort sort) {
+    public Page<Student> getStudents(
+            Long institutionId, Long courseId,
+            Sort sort, int pageNo, int pageSize
+    ) {
+
+        Pageable paging = PageRequest.of(pageNo, pageSize, sort);
+
         // Begin with checking courseId because it's in an institution
         // Even if both institutionId and courseId have values,
         // courseId has a higher 'specificity'
         if (courseId != null) {
             // courseId has a value
-            return studentRepository.findAllByCourseId(courseId, sort);
+            return studentRepository.findAllByCourseId(courseId, paging);
         }
         else if (institutionId != null) {
             // institutionId has a value
-            return studentRepository.findAllByCourseInstitutionId(institutionId, sort);
+            return studentRepository.findAllByCourseInstitutionId(institutionId, paging);
         } else {
             // institutionId and courseId are both null
-            return studentRepository.findAll(sort);
+            return studentRepository.findAll(paging);
         }
     }
 

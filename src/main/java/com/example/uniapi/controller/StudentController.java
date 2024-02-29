@@ -7,6 +7,7 @@ import com.example.uniapi.dto.TransferStudentDTO;
 import com.example.uniapi.exception.InvalidReqParamException;
 import com.example.uniapi.service.StudentService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -42,9 +43,16 @@ public class StudentController {
     }
 
     @GetMapping(path = {"", "/"})
-    public ResponseEntity<List<Student>> getStudents(
+    public ResponseEntity<Page<Student>> getStudents(
+            // Params for filtering
             @RequestParam(name = "institutionId", required = false) Long institutionId,
             @RequestParam(name = "courseId", required = false) Long courseId,
+
+            // Params for paging
+            @RequestParam(name = "pageNo", defaultValue = "0") int pageNo,
+            @RequestParam(name = "pageSize", defaultValue = "10") int pageSize,
+
+            // Params for sorting
             @RequestParam(name = "sortBy", required = false) String sortBy,
             @RequestParam(name = "sortOrder", required = false, defaultValue = "ASC") String sortOrder
     ) {
@@ -69,7 +77,7 @@ public class StudentController {
                     "Invalid sort field name. Allowed sortBy names are: " + allowedSortFields);
         }
 
-        List<Student> students = studentService.getStudents(institutionId, courseId, sort);
+        Page<Student> students = studentService.getStudents(institutionId, courseId, sort, pageNo, pageSize);
         return ResponseEntity.status(HttpStatus.OK).body(students);
     }
 
